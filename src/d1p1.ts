@@ -27,6 +27,41 @@ const getNumbersOnlyStringArr = (inputValue: string) => {
   );
 };
 
+const findFirstAndLastNum = (inputStr: string) => {
+  const inputStrAsArray = [...inputStr];
+
+  let firstNum;
+  inputStrAsArray.forEach((char: string, idx: number) => {
+    if (isFinite(parseInt(char))) {
+      firstNum = char;
+      return;
+    }
+    Object.keys(strNumToInt).forEach((stringNum: string) => {
+      if (stringNum === inputStr.substring(idx, idx + stringNum.length)) {
+        firstNum = strNumToInt[stringNum];
+        return;
+      }
+    });
+  });
+
+  let lastNum;
+  for (let index = inputStrAsArray.length; index > 0; index--) {
+    const char = inputStrAsArray[index];
+    if (isFinite(parseInt(char))) {
+      lastNum = char;
+      return;
+    }
+    Object.keys(strNumToInt).forEach((stringNum: string) => {
+      if (stringNum === inputStr.substring(index - stringNum.length, index)) {
+        lastNum = strNumToInt[stringNum];
+        return;
+      }
+    });
+  }
+  console.log("inputStr: ", inputStr);
+  return [firstNum, lastNum];
+};
+
 const replaceStrNumbersWithNumber = (inputStr: string) => {
   // console.log("🚀 ~ replaceStrNumbersWithNumber ~ inputStr:", inputStr);
   let processedStr = inputStr;
@@ -55,6 +90,19 @@ const replaceStrNumbersWithNumber = (inputStr: string) => {
     }
   });
 
+  if (lastStrNum !== "") {
+    const startIdxToReplace = processedStr.lastIndexOf(lastStrNum);
+
+    const charsBeforeReplace = processedStr.substring(0, startIdxToReplace);
+
+    const charsAfterReplace = processedStr.substring(
+      startIdxToReplace + lastStrNum.length,
+      processedStr.length
+    );
+
+    return `${charsBeforeReplace}${strNumToInt[lastStrNum]}${charsAfterReplace}`;
+  }
+
   if (firstStrNumIdx !== 99) {
     processedStr = processedStr.replace(
       firstStrNum,
@@ -62,32 +110,6 @@ const replaceStrNumbersWithNumber = (inputStr: string) => {
     );
   }
 
-  if (lastStrNum !== "") {
-    console.log("lastStrNum: ", lastStrNum);
-    console.log("processedStr: ", processedStr);
-    const startIdxToReplace = processedStr.lastIndexOf(lastStrNum);
-    console.log(
-      "🚀 ~ replaceStrNumbersWithNumber ~ startIdxToReplace:",
-      startIdxToReplace
-    );
-
-    const charsBeforeReplace = processedStr.substring(0, startIdxToReplace);
-    console.log(
-      "🚀 ~ replaceStrNumbersWithNumber ~ charsBeforeReplace:",
-      charsBeforeReplace
-    );
-
-    const charsAfterReplace = processedStr.substring(
-      startIdxToReplace + lastStrNum.length,
-      processedStr.length
-    );
-    console.log(
-      "🚀 ~ replaceStrNumbersWithNumber ~ charsAfterReplace:",
-      charsAfterReplace
-    );
-
-    return `${charsBeforeReplace}${strNumToInt[lastStrNum]}${charsAfterReplace}`;
-  }
   return processedStr;
 };
 
@@ -105,16 +127,15 @@ const getcalibrationValue = (numberArrayStringArr: string[]) => {
 const inputDataObjArr = data.map((rawInputStr: string) => {
   return {
     rawVal: rawInputStr,
-    strNumsToInt: replaceStrNumbersWithNumber(rawInputStr),
-    numOnlyStr: getNumbersOnlyStringArr(rawInputStr),
+    parsedArray: findFirstAndLastNum(rawInputStr),
     calValue: getcalibrationValue(getNumbersOnlyStringArr(rawInputStr)),
+    newCalValue: getcalibrationValue(findFirstAndLastNum(rawInputStr)),
   };
 });
-
-console.log("inputDataObjArr: ", inputDataObjArr);
+console.log("🚀 ~ inputDataObjArr ~ inputDataObjArr:", inputDataObjArr);
 
 const sum = inputDataObjArr.reduce(
-  (partialSum, a) => partialSum + a.calValue,
+  (partialSum, a) => partialSum + a.newCalValue,
   0
 );
 
