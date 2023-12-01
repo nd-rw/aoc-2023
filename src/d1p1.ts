@@ -1,5 +1,5 @@
 // reading input and splitting on newline to save as an array
-const data = await Bun.file("inputs/d1.txt")
+const data = await Bun.file("inputs/d1-eg.txt")
   .text()
   .then((x) => x.split("\n"));
 
@@ -30,19 +30,21 @@ const getNumbersOnlyStringArr = (inputValue: string) => {
 const findFirstAndLastNum = (inputStr: string) => {
   const inputStrAsArray = [...inputStr];
 
-  let firstNum;
+  let firstNum: string | number;
   inputStrAsArray.forEach((char: string, idx: number) => {
+    if (isFinite(parseInt(firstNum))) {
+      return;
+    }
     if (isFinite(parseInt(char))) {
       firstNum = char;
-      return;
     }
     Object.keys(strNumToInt).forEach((stringNum: string) => {
       if (stringNum === inputStr.substring(idx, idx + stringNum.length)) {
         firstNum = strNumToInt[stringNum];
-        return;
       }
     });
   });
+  console.log("firstNum: ", firstNum);
 
   let lastNum;
   for (let index = inputStrAsArray.length; index > 0; index--) {
@@ -58,8 +60,12 @@ const findFirstAndLastNum = (inputStr: string) => {
       }
     });
   }
+  console.log("🚀 ~ findFirstAndLastNum ~ lastNum:", lastNum);
+
   console.log("inputStr: ", inputStr);
-  return [firstNum, lastNum];
+  const returnVal = [firstNum, lastNum];
+  console.log("🚀 ~ findFirstAndLastNum ~ returnVal:", returnVal);
+  return returnVal;
 };
 
 const replaceStrNumbersWithNumber = (inputStr: string) => {
@@ -114,7 +120,10 @@ const replaceStrNumbersWithNumber = (inputStr: string) => {
 };
 
 const getcalibrationValue = (numberArrayStringArr: string[]) => {
-  if (numberArrayStringArr.length === 1) {
+  if (!numberArrayStringArr) {
+    return 0;
+  }
+  if (numberArrayStringArr?.length === 1) {
     return parseInt(`${numberArrayStringArr[0]}${numberArrayStringArr[0]}`);
   }
   return parseInt(
@@ -129,13 +138,12 @@ const inputDataObjArr = data.map((rawInputStr: string) => {
     rawVal: rawInputStr,
     parsedArray: findFirstAndLastNum(rawInputStr),
     calValue: getcalibrationValue(getNumbersOnlyStringArr(rawInputStr)),
-    newCalValue: getcalibrationValue(findFirstAndLastNum(rawInputStr)),
   };
 });
 console.log("🚀 ~ inputDataObjArr ~ inputDataObjArr:", inputDataObjArr);
 
 const sum = inputDataObjArr.reduce(
-  (partialSum, a) => partialSum + a.newCalValue,
+  (partialSum, a) => partialSum + a.calValue,
   0
 );
 
