@@ -58,6 +58,8 @@ console.log("🚀 ~ arrWithScores ~ arrWithScores:", arrWithNumMatches);
 console.log("🚀 ~ partTwoData ~ partTwoData:", partTwoData);
 
 // lazy copy, don't want a reference
+// new cards will be added in here
+// .length will be used to determine the total amount of cards for the answer
 const allCards = JSON.parse(JSON.stringify(partTwoData));
 
 partTwoData.forEach((obj, idx) => {
