@@ -83,6 +83,18 @@ const getDestNum = (seedNum: number, sourceToDestMap: any) => {
   return seedToSoilEntry.destRangeStart + index;
 };
 
+const getSourceNum = (destNum: number, sourceToDestMap: any) => {
+  const sourceToDestEntry = sourceToDestMap.find(
+    (x: { destRangeStart: number; destRange: number }) =>
+      destNum >= x.destRangeStart && destNum < x.destRange
+  );
+  if (!sourceToDestEntry) {
+    return destNum;
+  }
+  const index = destNum - sourceToDestEntry.destRangeStart;
+  return sourceToDestEntry.sourceRangeStart + index;
+};
+
 // seed-to-soil
 // soil-to-fertilizer
 // fertilizer-to-water
@@ -90,6 +102,35 @@ const getDestNum = (seedNum: number, sourceToDestMap: any) => {
 // light-to-temperature
 // temperature-to-humidity
 // humidity-to-location
+
+const getLocationSeedNum = (locationNum: number, notTest: boolean) => {
+  const humidityNum = getSourceNum(
+    locationNum,
+    notTest ? humidityToLocation : eg_humidityToLocation
+  );
+  const temperatureNum = getSourceNum(
+    humidityNum,
+    notTest ? temperatureToHumidity : eg_temperatureToHumidity
+  );
+  const lightNum = getSourceNum(
+    temperatureNum,
+    notTest ? lightToTemperature : eg_lightToTemperature
+  );
+  const waterNum = getSourceNum(
+    lightNum,
+    notTest ? waterToLight : eg_waterToLight
+  );
+  const fertilizerNum = getSourceNum(
+    waterNum,
+    notTest ? fertilizerToWater : eg_fertilizerToWater
+  );
+  const soilNum = getSourceNum(
+    fertilizerNum,
+    notTest ? soilToFertilizer : eg_soilToFertilizer
+  );
+  const seedNum = getSourceNum(soilNum, notTest ? seedToSoil : eg_seedToSoil);
+  return seedNum;
+};
 
 const getSeedLocationNum = (seedNum: number, notTest: boolean) => {
   const soilNum = getDestNum(seedNum, notTest ? seedToSoil : eg_seedToSoil);
@@ -284,9 +325,39 @@ if (isTestPassed) {
 // p2
 
 const seeds = [79, 14, 55, 13];
-const p2 = seeds.map((x) => {
+const p2EgSeeds = seeds
+  .map((x, idx) => {
+    if (idx === 0 || idx % 2 === 0) {
+      return {
+        seedNumStart: x,
+        seedNumEnd: x + seeds[idx + 1] - 1,
+      };
+    }
+  })
+  .filter((x) => x !== undefined);
+
+console.log("🚀 ~p2EgSeeds:", p2EgSeeds);
+console.log("🚀 ~eg_humidityToLocation:", eg_humidityToLocation);
+
+eg_humidityToLocation;
+const p2Eg = seedNums.map((x) => {
   return {
     seed: x,
-    location: getSeedLocationNum(x, false),
+    location: getSeedLocationNum(x, true),
   };
 });
+
+// todo: idea is to go from location (need to account for there not being a humid <-> location mapping, you just use the humid value)
+// and start from the lowest location number until you hit a valid seed
+
+console.log(
+  "eg_humidityToLocation:",
+  eg_humidityToLocation
+    .sort((a, b) => a.destRangeStart - b.destRangeStart)
+    .map((x) => x.destRangeStart)
+);
+
+console.log(
+  "eg_temperatureToHumidity:",
+  eg_temperatureToHumidity.sort((a, b) => a.destRangeStart - b.destRangeStart)
+);
